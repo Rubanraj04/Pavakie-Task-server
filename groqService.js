@@ -8,14 +8,14 @@ function getGroqClient() {
   if (!process.env.GROQ_API_KEY) {
     return null;
   }
-  
+
   // Initialize on first use
   if (!groq) {
     groq = new Groq({
       apiKey: process.env.GROQ_API_KEY,
     });
   }
-  
+
   return groq;
 }
 
@@ -67,14 +67,14 @@ Return JSON only:
           content: prompt
         }
       ],
-      model: 'llama-3.1-8b-instant', // Fastest model
-      temperature: 0.1, // Lower temperature for faster, more consistent responses
-      max_tokens: 150, // Reduced tokens for faster response
+      model: 'llama-3.1-8b-instant',
+      temperature: 0.1,
+      max_tokens: 150,
       stream: false
     });
 
     const responseContent = completion.choices[0]?.message?.content;
-    
+
     if (!responseContent) {
       throw new Error('No response from Groq');
     }
@@ -86,7 +86,7 @@ Return JSON only:
       parsedResponse = JSON.parse(responseContent);
     } catch (parseError) {
       // If that fails, try extracting JSON from markdown code blocks
-      const jsonMatch = responseContent.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/) || 
+      const jsonMatch = responseContent.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/) ||
                        responseContent.match(/(\{[\s\S]*\})/);
       if (jsonMatch) {
         parsedResponse = JSON.parse(jsonMatch[1]);
@@ -128,16 +128,20 @@ Return JSON only:
  */
 function extractKeywords(text) {
   if (!text) return [];
-  
-  // Remove common stop words and extract meaningful words
-  const stopWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'should', 'could', 'may', 'might', 'must', 'can', 'this', 'that', 'these', 'those']);
-  
+
+  const stopWords = new Set([
+    'the','a','an','and','or','but','in','on','at','to','for','of','with','by',
+    'is','are','was','were','be','been','being','have','has','had','do','does',
+    'did','will','would','should','could','may','might','must','can','this','that',
+    'these','those'
+  ]);
+
   const words = text
     .toLowerCase()
     .replace(/[^\w\s]/g, ' ')
     .split(/\s+/)
     .filter(word => word.length > 2 && !stopWords.has(word));
-  
+
   return [...new Set(words)]; // Remove duplicates
 }
 
@@ -149,9 +153,8 @@ function extractKeywords(text) {
  */
 function buildEnhancedQuery(processedData, existingQuery = {}) {
   const query = { ...existingQuery };
-  
+
   if (!processedData || !processedData.useAI) {
-    // Fallback to simple regex search
     if (processedData?.processedQuery) {
       query.$or = [
         { title: { $regex: processedData.processedQuery, $options: 'i' } },
@@ -162,10 +165,8 @@ function buildEnhancedQuery(processedData, existingQuery = {}) {
     return query;
   }
 
-  // Build enhanced query using AI-processed data
   const searchConditions = [];
-  
-  // Use improved query for broad search
+
   if (processedData.processedQuery) {
     searchConditions.push(
       { title: { $regex: processedData.processedQuery, $options: 'i' } },
@@ -173,8 +174,7 @@ function buildEnhancedQuery(processedData, existingQuery = {}) {
       { company: { $regex: processedData.processedQuery, $options: 'i' } }
     );
   }
-  
-  // Add keyword-based search
+
   if (processedData.keywords && processedData.keywords.length > 0) {
     processedData.keywords.forEach(keyword => {
       searchConditions.push(
@@ -183,15 +183,12 @@ function buildEnhancedQuery(processedData, existingQuery = {}) {
       );
     });
   }
-  
-  // Add job title search if extracted
+
   if (processedData.jobTitle) {
     searchConditions.push({ title: { $regex: processedData.jobTitle, $options: 'i' } });
   }
-  
-  // Add skills search if extracted
+
   if (processedData.skills && processedData.skills.length > 0) {
-    // Add skills to search conditions
     processedData.skills.forEach(skill => {
       searchConditions.push({ skills: { $in: [new RegExp(skill, 'i')] } });
     });
@@ -200,8 +197,7 @@ function buildEnhancedQuery(processedData, existingQuery = {}) {
   if (searchConditions.length > 0) {
     query.$or = (query.$or || []).concat(searchConditions);
   }
-  
-  // Add job level filter if extracted
+
   if (processedData.jobLevel) {
     const levelMap = {
       'entry': { $lte: 2 },
@@ -209,7 +205,7 @@ function buildEnhancedQuery(processedData, existingQuery = {}) {
       'senior': { $gte: 5, $lte: 10 },
       'executive': { $gte: 10 }
     };
-    
+
     if (levelMap[processedData.jobLevel]) {
       query.experience = levelMap[processedData.jobLevel];
     }
@@ -223,4 +219,3 @@ module.exports = {
   buildEnhancedQuery,
   extractKeywords
 };
-

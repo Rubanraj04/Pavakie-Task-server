@@ -220,4 +220,3 @@ module.exports = {
   deleteFile,
   fileExists,
 };
-
