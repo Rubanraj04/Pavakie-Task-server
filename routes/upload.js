@@ -2,8 +2,8 @@ const express = require('express');
 const multer = require('multer');
 const mongoose = require('mongoose');
 const { auth } = require('../middleware/auth');
-const { extractKeywordsFromResume } = require('../services/resumeParser');
-const { uploadFile } = require('../services/gridfsService');
+const { extractKeywordsFromResume } = require('../resumeParser');
+const { uploadFile } = require('../gridfsService');
 const Resume = require('../models/Resume');
 const User = require('../models/User');
 

@@ -1,6 +1,6 @@
 const natural = require('natural');
-const User = require('../models/User');
-const Job = require('../models/Job');
+const User = require('./models/User');
+const Job = require('./models/Job');
 
 // TF-IDF based recommendation (fallback when OpenAI is not available)
 function calculateTFIDFScore(userSkills, userKeywords, jobDescription, jobSkills, jobRequirements) {
