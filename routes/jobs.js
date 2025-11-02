@@ -1,9 +1,9 @@
 const express = require('express');
 const Job = require('../models/Job');
 const { auth } = require('../middleware/auth');
-const { getRecommendations } = require('../services/recommendationService');
-const { processSearchQuery, buildEnhancedQuery } = require('../services/groqService');
-const { searchExternalLinksWithAI } = require('../services/webSearchService');
+const { getRecommendations } = require('../recommendationService');
+const { processSearchQuery, buildEnhancedQuery } = require('../groqService');
+const { searchExternalLinksWithAI } = require('../webSearchService');
 
 const router = express.Router();
 
