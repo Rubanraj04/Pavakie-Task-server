@@ -1,5 +1,6 @@
 const express = require('express');
 const multer = require('multer');
+const mongoose = require('mongoose');
 const { auth } = require('../middleware/auth');
 const { extractKeywordsFromResume } = require('../services/resumeParser');
 const { uploadFile } = require('../services/gridfsService');
@@ -124,9 +125,17 @@ router.get('/resume/:fileId', auth, async (req, res) => {
     const { fileId } = req.params;
     const userId = req.user._id;
 
+    // Convert string fileId to ObjectId
+    let fileObjectId;
+    try {
+      fileObjectId = new mongoose.Types.ObjectId(fileId);
+    } catch (error) {
+      return res.status(400).json({ message: 'Invalid file ID format' });
+    }
+
     // Verify user owns this resume
     const resume = await Resume.findOne({ 
-      gridFSFileId: fileId,
+      gridFSFileId: fileObjectId,
       userId: userId 
     });
 
@@ -136,7 +145,7 @@ router.get('/resume/:fileId', auth, async (req, res) => {
 
     // Download file from GridFS
     const { downloadFile } = require('../services/gridfsService');
-    const fileData = await downloadFile(fileId);
+    const fileData = await downloadFile(fileObjectId);
 
     // Set appropriate headers
     res.setHeader('Content-Type', fileData.contentType);
@@ -160,9 +169,17 @@ router.get('/resume/:fileId/view', auth, async (req, res) => {
     const { fileId } = req.params;
     const userId = req.user._id;
 
+    // Convert string fileId to ObjectId
+    let fileObjectId;
+    try {
+      fileObjectId = new mongoose.Types.ObjectId(fileId);
+    } catch (error) {
+      return res.status(400).json({ message: 'Invalid file ID format' });
+    }
+
     // Verify user owns this resume
     const resume = await Resume.findOne({ 
-      gridFSFileId: fileId,
+      gridFSFileId: fileObjectId,
       userId: userId 
     });
 
@@ -172,7 +189,7 @@ router.get('/resume/:fileId/view', auth, async (req, res) => {
 
     // Download file from GridFS
     const { downloadFile } = require('../services/gridfsService');
-    const fileData = await downloadFile(fileId);
+    const fileData = await downloadFile(fileObjectId);
 
     // Set appropriate headers for inline viewing
     res.setHeader('Content-Type', fileData.contentType);
@@ -196,9 +213,17 @@ router.delete('/resume/:fileId', auth, async (req, res) => {
     const { fileId } = req.params;
     const userId = req.user._id;
 
+    // Convert string fileId to ObjectId
+    let fileObjectId;
+    try {
+      fileObjectId = new mongoose.Types.ObjectId(fileId);
+    } catch (error) {
+      return res.status(400).json({ message: 'Invalid file ID format' });
+    }
+
     // Find and verify resume ownership
     const resume = await Resume.findOne({ 
-      gridFSFileId: fileId,
+      gridFSFileId: fileObjectId,
       userId: userId 
     });
 
@@ -208,7 +233,7 @@ router.delete('/resume/:fileId', auth, async (req, res) => {
 
     // Delete file from GridFS
     const { deleteFile } = require('../services/gridfsService');
-    await deleteFile(fileId);
+    await deleteFile(fileObjectId);
 
     // Delete resume record
     await Resume.findByIdAndDelete(resume._id);

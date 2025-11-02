@@ -1,9 +1,23 @@
 const Groq = require('groq-sdk');
 
-// Initialize Groq client
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
+// Lazy initialization of Groq client (only when needed and API key is available)
+let groq = null;
+
+function getGroqClient() {
+  // Only initialize if API key is available
+  if (!process.env.GROQ_API_KEY) {
+    return null;
+  }
+  
+  // Initialize on first use
+  if (!groq) {
+    groq = new Groq({
+      apiKey: process.env.GROQ_API_KEY,
+    });
+  }
+  
+  return groq;
+}
 
 /**
  * Process search query using Groq AI to extract keywords, intent, and improve search
@@ -22,9 +36,10 @@ async function processSearchQuery(searchText) {
       };
     }
 
-    // Check if Groq API key is configured
-    if (!process.env.GROQ_API_KEY) {
-      console.warn('GROQ_API_KEY not configured, using direct search');
+    // Get Groq client (only if API key is available)
+    const groqClient = getGroqClient();
+    if (!groqClient) {
+      // Fallback to direct search if Groq is not available
       return {
         originalQuery: searchText,
         processedQuery: searchText,
@@ -41,7 +56,7 @@ Return JSON only:
 {"keywords":["term1","term2"],"skills":["skill1"],"jobTitle":"title or null","jobLevel":"entry|mid|senior or null","intent":"brief","improvedQuery":"refined query","searchTerms":["term1"]}`;
 
     // Use faster model with optimized settings
-    const completion = await groq.chat.completions.create({
+    const completion = await groqClient.chat.completions.create({
       messages: [
         {
           role: 'system',

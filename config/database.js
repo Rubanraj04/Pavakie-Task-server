@@ -7,7 +7,7 @@ const connectDB = async () => {
   if (mongoose.connection.readyState === 1) {
     console.log('✅ MongoDB already connected');
     isConnected = true;
-    return;
+    return mongoose.connection;
   }
 
   try {

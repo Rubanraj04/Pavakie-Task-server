@@ -20,11 +20,23 @@ app.use(express.urlencoded({ extended: true }));
 
 // Connect to MongoDB
 connectDB().then(() => {
-  // Initialize GridFS after MongoDB connection
-  const { initGridFS } = require('./services/gridfsService');
-  initGridFS().catch(err => {
-    console.error('Warning: Could not initialize GridFS:', err.message);
-  });
+  // Initialize GridFS after MongoDB connection (non-blocking)
+  setTimeout(async () => {
+    try {
+      const { initGridFS } = require('./services/gridfsService');
+      const result = await initGridFS();
+      if (result) {
+        console.log('✅ GridFS ready for file storage');
+      }
+    } catch (err) {
+      console.warn('⚠️  GridFS initialization deferred:', err.message);
+      console.log('📝 GridFS will initialize automatically on first file upload');
+    }
+  }, 1000); // Wait 1 second for MongoDB to be fully ready
+}).catch((error) => {
+  console.error('❌ MongoDB connection failed:', error.message);
+  console.log('⚠️  Server will continue, but database features may be unavailable');
+  // Server continues to run - GridFS will initialize later if connection succeeds
 });
 
 // Routes

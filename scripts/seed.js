@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const crypto = require('crypto');
 const User = require('../models/User');
 const Job = require('../models/Job');
 const Application = require('../models/Application');
@@ -20,7 +21,7 @@ const users = [
   {
     name: 'Jane Smith',
     email: 'jane.smith@example.com',
-    password: require('crypto').randomBytes(16).toString('hex'),
+    password: crypto.randomBytes(16).toString('hex'), // Random password - user should reset
     role: 'candidate',
     skills: ['Python', 'Django', 'PostgreSQL', 'AWS'],
     experience: 5,
@@ -28,7 +29,7 @@ const users = [
   {
     name: 'Mike Johnson',
     email: 'mike.johnson@example.com',
-    password: require('crypto').randomBytes(16).toString('hex'),
+    password: crypto.randomBytes(16).toString('hex'), // Random password - user should reset
     role: 'candidate',
     skills: ['Java', 'Spring Boot', 'MySQL', 'Docker'],
     experience: 2,
@@ -36,7 +37,7 @@ const users = [
   {
     name: 'Sarah Williams',
     email: 'sarah.williams@example.com',
-    password: require('crypto').randomBytes(16).toString('hex'),
+    password: crypto.randomBytes(16).toString('hex'), // Random password - user should reset
     role: 'candidate',
     skills: ['React', 'TypeScript', 'Redux', 'Next.js'],
     experience: 4,
@@ -44,19 +45,19 @@ const users = [
   {
     name: 'Tech Corp HR',
     email: 'hr@techcorp.com',
-    password: require('crypto').randomBytes(16).toString('hex'),
+    password: crypto.randomBytes(16).toString('hex'), // Random password - user should reset
     role: 'recruiter',
   },
   {
     name: 'Innovate Solutions',
     email: 'jobs@innovate.com',
-    password: require('crypto').randomBytes(16).toString('hex'),
+    password: crypto.randomBytes(16).toString('hex'), // Random password - user should reset
     role: 'recruiter',
   },
   {
     name: 'Admin User',
     email: 'admin@jobportal.com',
-    password: require('crypto').randomBytes(16).toString('hex'),
+    password: crypto.randomBytes(16).toString('hex'), // Random password - user should reset
     role: 'admin',
   },
 ];

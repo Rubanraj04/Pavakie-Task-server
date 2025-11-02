@@ -15,8 +15,22 @@ let gfs;
  */
 async function initGridFS() {
   try {
+    // Wait for MongoDB connection if not ready
+    if (mongoose.connection.readyState !== 1) {
+      // Wait up to 5 seconds for connection
+      let attempts = 0;
+      while (mongoose.connection.readyState !== 1 && attempts < 10) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        attempts++;
+      }
+      
+      if (mongoose.connection.readyState !== 1) {
+        throw new Error('MongoDB connection not established. Please check your connection.');
+      }
+    }
+
     if (!mongoose.connection.db) {
-      throw new Error('MongoDB connection not established');
+      throw new Error('MongoDB database not available');
     }
 
     // Create GridFS bucket named 'resumes'
@@ -27,8 +41,10 @@ async function initGridFS() {
     console.log('✅ GridFS initialized successfully');
     return gfs;
   } catch (error) {
-    console.error('❌ Error initializing GridFS:', error);
-    throw error;
+    console.error('❌ Error initializing GridFS:', error.message);
+    // Don't throw - allow server to continue without GridFS
+    // GridFS will be initialized on first use
+    return null;
   }
 }
 
@@ -43,7 +59,10 @@ async function initGridFS() {
 async function uploadFile(buffer, filename, mimeType, metadata = {}) {
   try {
     if (!gfs) {
-      await initGridFS();
+      const result = await initGridFS();
+      if (!result) {
+        throw new Error('GridFS not available. Please check MongoDB connection.');
+      }
     }
 
     // Generate unique filename with timestamp
@@ -92,7 +111,10 @@ async function uploadFile(buffer, filename, mimeType, metadata = {}) {
 async function downloadFile(fileId) {
   try {
     if (!gfs) {
-      await initGridFS();
+      const result = await initGridFS();
+      if (!result) {
+        throw new Error('GridFS not available. Please check MongoDB connection.');
+      }
     }
 
     return new Promise(async (resolve, reject) => {
@@ -148,7 +170,10 @@ async function downloadFile(fileId) {
 async function deleteFile(fileId) {
   try {
     if (!gfs) {
-      await initGridFS();
+      const result = await initGridFS();
+      if (!result) {
+        throw new Error('GridFS not available. Please check MongoDB connection.');
+      }
     }
 
     return new Promise((resolve, reject) => {
@@ -174,7 +199,10 @@ async function deleteFile(fileId) {
 async function fileExists(fileId) {
   try {
     if (!gfs) {
-      await initGridFS();
+      const result = await initGridFS();
+      if (!result) {
+        return false;
+      }
     }
 
     const files = await gfs.find({ _id: fileId }).toArray();
@@ -183,7 +211,6 @@ async function fileExists(fileId) {
     console.error('Error checking file existence:', error);
     return false;
   }
-
 }
 
 module.exports = {
